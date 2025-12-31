@@ -58,8 +58,31 @@ myGCDHelper gr ls = if gr `mod` ls == 0 then ls else myGCDHelper ls (gr `mod` ls
 
 -- является ли дата корректной с учётом количества дней в месяце и
 -- вискокосных годов?
+-- Assuming years should be non negative
+-- Day, Month, Year
 isDateCorrect :: Integer -> Integer -> Integer -> Bool
-isDateCorrect = notImplementedYet
+isDateCorrect d m y =
+    if y < 0 then False else             -- min year check
+    if (min d m) <= 0 then False else    -- min days/months check
+    if m > 12 then False else            -- max months check
+    if d > (maxDays m y) then False else -- max days check
+    True
+
+-- 31 days: 1, 3, 5, 7, 8, 10, 12
+-- 30 days: 4, 6, 9, 11
+-- 28 or 29: 2
+
+-- Month -> Year -> Days
+maxDays :: Integer -> Integer -> Integer
+maxDays 2 year = if leapYear year then 29 else 28
+maxDays x _ | x > 7 = if x `mod` 2 == 0 then 31 else 30
+maxDays x _ = if x `mod` 2 == 0 then 30 else 31 
+
+leapYear :: Integer -> Bool
+leapYear year =
+    if year `mod` 100 /= 0 && year `mod` 4 == 0 then True else
+    if year `mod` 400 == 0 then True
+    else False
 
 -- возведение числа в степень, duh
 -- готовые функции и плавающую арифметику использовать нельзя
