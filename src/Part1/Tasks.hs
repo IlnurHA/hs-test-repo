@@ -49,7 +49,12 @@ myCosHelper i n x res = if i > n then res
 
 -- наибольший общий делитель двух чисел
 myGCD :: Integer -> Integer -> Integer
-myGCD = notImplementedYet
+myGCD a 0 = abs a
+myGCD 0 b = abs b
+myGCD a b = myGCDHelper (max a b) (min a b)
+
+myGCDHelper :: Integer -> Integer -> Integer
+myGCDHelper gr ls = if gr `mod` ls == 0 then ls else myGCDHelper ls (gr `mod` ls)
 
 -- является ли дата корректной с учётом количества дней в месяце и
 -- вискокосных годов?
