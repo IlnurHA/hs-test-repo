@@ -73,4 +73,13 @@ isIn a (x:xs) | x == a = True
 -- значению результата применения F к элементам Lst ставит в соответствие список элементов Lst,
 -- приводящих к этому результату. Результат следует представить в виде списка пар.
 grokBy :: (Eq k) => (a -> k) -> [a] -> [(k, [a])]
-grokBy f l = notImplementedYet
+grokBy f l = grokByHelper f l []
+
+grokByHelper :: (Eq k) => (a -> k) -> [a] -> [(k, [a])] -> [(k, [a])]
+grokByHelper f [] res = res
+grokByHelper f (x:xs) res = grokByHelper f xs $ addResult res (f x) x
+
+addResult :: (Eq k) => [(k, [a])] -> k -> a -> [(k, [a])]
+addResult [] k a = [(k, [a])] 
+addResult (x@(kDict, arr):xs) k a   | kDict == k = (k, a:arr):xs
+                                    | otherwise = x : (addResult xs k a)
