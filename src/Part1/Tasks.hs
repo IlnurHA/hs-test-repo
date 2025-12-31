@@ -95,7 +95,12 @@ myPowHelper n power res = myPowHelper n (power - 1) (res * n)
 
 -- является ли данное число простым?
 isPrime :: Integer -> Bool
-isPrime = notImplementedYet
+isPrime = isPrimeHelper 2
+
+isPrimeHelper :: Integer -> Integer -> Bool
+isPrimeHelper _ 1 = False
+isPrimeHelper cur x | cur == x = True
+isPrimeHelper cur x = if x `mod` cur == 0 then False else isPrimeHelper (cur + 1) x
 
 type Point2D = (Double, Double)
 
@@ -103,7 +108,27 @@ type Point2D = (Double, Double)
 -- многоугольник задан списком координат
 shapeArea :: [Point2D] -> Double
 --shapeArea points = notImplementedYet
-shapeArea = notImplementedYet
+shapeArea points = area
+    where
+        leftSum = case points of 
+            [] -> 0
+            ((a, b) : xs) -> gaussLeftSum points 0 b 
+        
+
+        rightSum = case points of 
+            [] -> 0
+            ((a, b) : xs) -> gaussRightSum points 0 a
+        
+        area = (abs(leftSum - rightSum)) / 2 
+
+gaussLeftSum :: [Point2D] -> Double -> Double -> Double
+gaussLeftSum [] x firstY = x * firstY
+gaussLeftSum ((a, b):xs) x firstY = b * x + (gaussLeftSum xs a firstY)
+
+
+gaussRightSum :: [Point2D] -> Double -> Double -> Double
+gaussRightSum [] y firstX = y * firstX
+gaussRightSum ((a, b):xs) y firstX = a * y + (gaussRightSum xs b firstX)
 
 -- треугольник задан длиной трёх своих сторон.
 -- функция должна вернуть
@@ -112,4 +137,26 @@ shapeArea = notImplementedYet
 --  2, если он прямоугольный
 --  -1, если это не треугольник
 triangleKind :: Double -> Double -> Double -> Integer
-triangleKind a b c = notImplementedYet
+triangleKind a b c =
+    if not (notATriangleTest a b c) then -1 else
+    computeTriangleTest
+
+    where 
+        max_side = max a $ max b c
+
+        computeTriangleTest = case max_side of
+            x | x == a -> triangleTest a b c
+            x | x == b -> triangleTest b a c
+            x -> triangleTest c a b
+        triangleTest max_side side1 side2 = 
+            if max_side * max_side > side1 * side1 + side2 * side2 then 0 else
+            if max_side * max_side == side1 * side1 + side2 * side2 then 2 else
+            1
+
+notATriangleTest :: Double -> Double -> Double -> Bool
+notATriangleTest a b c =
+    if a + b < c then False else
+    if a + c < b then False else
+    if b + c < a then False else
+    True
+
