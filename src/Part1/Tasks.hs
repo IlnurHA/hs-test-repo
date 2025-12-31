@@ -2,13 +2,50 @@ module Part1.Tasks where
 
 import Util(notImplementedYet)
 
+factorial :: Int -> Int
+factorial x = factorialHelper x 1
+
+factorialHelper :: Int -> Int -> Int
+factorialHelper x res = if x <= 1 then res else factorialHelper (x - 1) (res * x)
+
 -- синус числа (формула Тейлора)
 mySin :: Double -> Double
-mySin = notImplementedYet
+mySin x = (mySinHelper 2 7 x x)
+
+mySinHelper :: Int -> Int -> Double -> Double -> Double 
+mySinHelper i n x res = if i > n then res
+    else (mySinHelper (i + 1) n x (res + nextSummand) )
+
+    where
+        sign = (-1.0) ** fromIntegral(i + 1)
+        power = (2 * i - 1)
+        fact = factorial power
+        
+        nominator :: Double
+        nominator = sign * ( x ** (fromIntegral power) )
+        
+        nextSummand :: Double
+        nextSummand = nominator / (fromIntegral fact)
+        
 
 -- косинус числа (формула Тейлора)
 myCos :: Double -> Double
-myCos = notImplementedYet
+myCos x = myCosHelper 1 7 x 1
+
+myCosHelper :: Int -> Int -> Double -> Double -> Double 
+myCosHelper i n x res = if i > n then res
+    else (myCosHelper (i + 1) n x (res + nextSummand) )
+
+    where
+        sign = (-1.0) ** fromIntegral(i)
+        power = (2 * i)
+        fact = fromIntegral $ factorial power
+        
+        nominator :: Double
+        nominator = sign * ( x ** (fromIntegral power) )
+        
+        nextSummand :: Double
+        nextSummand = nominator / fact
 
 -- наибольший общий делитель двух чисел
 myGCD :: Integer -> Integer -> Integer
