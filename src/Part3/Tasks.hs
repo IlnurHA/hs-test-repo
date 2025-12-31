@@ -12,52 +12,47 @@ ff f x = x : (ff f (f x))
 
 -- Дан список чисел. Вернуть самую часто встречающуюся *цифру* в этих числах (если таковых несколько -- вернуть любую)
 mostFreq :: [Int] -> Int
-mostFreq = charToInt . getMax . stringify
+mostFreq = mostFreqHelper . stringify
 
 stringify :: [Int] -> String
 stringify [] = ""
 stringify (x:xs) = show x ++ stringify xs
 
--- get max count for digits
-getMax :: String -> Char
-getMax string = checkFor string '0' (-1) '-'
-
 getFor :: String -> Char -> Int
 getFor arr x = length $ filter (==x) arr
 
-checkFor :: String -> Char -> Int -> Char -> Char
-checkFor string char@'9' max_ maxchar
-    | max_ > getFor string char = maxchar
-    | otherwise = char
-checkFor string char max_ maxchar = checkFor string (getNext char) nextMax nextMaxChar
+getForFromInt :: String -> Int -> Int
+getForFromInt arr x = getFor arr (intToChar x)
+
+mostFreqHelper :: String -> Int
+mostFreqHelper string = getIndexOf (maxFromList (-1) $ convertedList) convertedList
     where
-        nextMax = max max_ $ getFor string char
-        nextMaxChar = if nextMax == max_ then maxchar else char 
+        convertedList = take 10 $ finc (getForFromInt string) 0
 
-getNext :: Char -> Char
-getNext '0' = '1'
-getNext '1' = '2'
-getNext '2' = '3'
-getNext '3' = '4'
-getNext '4' = '5'
-getNext '5' = '6'
-getNext '6' = '7'
-getNext '7' = '8'
-getNext '8' = '9'
-getNext _ = '0'
+intToChar :: Int -> Char
+intToChar 0 = '0'
+intToChar 1 = '1'
+intToChar 2 = '2'
+intToChar 3 = '3'
+intToChar 4 = '4'
+intToChar 5 = '5'
+intToChar 6 = '6'
+intToChar 7 = '7'
+intToChar 8 = '8'
+intToChar 9 = '9'
+intToChar _ = '-'
 
-charToInt :: Char -> Int
-charToInt '0' = 0
-charToInt '1' = 1
-charToInt '2' = 2
-charToInt '3' = 3
-charToInt '4' = 4
-charToInt '5' = 5
-charToInt '6' = 6
-charToInt '7' = 7
-charToInt '8' = 8
-charToInt '9' = 9
-charToInt _ = -1
+maxFromList :: (Ord a) => a -> [a] -> a
+maxFromList res [] = res
+maxFromList res (x:xs) = maxFromList (max res x) xs
+
+getIndexOf :: (Ord a) => a -> [a] -> Int
+getIndexOf x arr = getIndexOfHelper x arr 0
+
+getIndexOfHelper :: (Ord a) => a -> [a] -> Int -> Int
+getIndexOfHelper _ [] _ = -1
+getIndexOfHelper n (x:xs) index | x == n = index
+                                | otherwise = getIndexOfHelper n xs (index + 1)
 
 -- Дан список lst. Вернуть список элементов из lst без повторений, порядок может быть произвольным.
 uniq :: (Eq a) => [a] -> [a]
