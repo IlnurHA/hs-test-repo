@@ -59,7 +59,11 @@ isDateCorrect = notImplementedYet
 -- возведение числа в степень, duh
 -- готовые функции и плавающую арифметику использовать нельзя
 myPow :: Integer -> Integer -> Integer
-myPow = notImplementedYet
+myPow n power = if power < 0 then 0 else myPowHelper n power 1
+
+myPowHelper :: Integer -> Integer -> Integer -> Integer
+myPowHelper _ 0 res = res
+myPowHelper n power res = myPowHelper n (power - 1) (res * n)
 
 -- является ли данное число простым?
 isPrime :: Integer -> Bool
