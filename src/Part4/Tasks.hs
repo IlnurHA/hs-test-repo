@@ -31,9 +31,12 @@ instance Show a => Show (ReverseList a) where
         showString "," .
         shows x
     show x = "[" ++ (showsPrec 0 x "") ++ "]"
-instance Eq (ReverseList a) where
-    (==) = notImplementedYet
-    (/=) = notImplementedYet
+instance Eq a => Eq (ReverseList a) where
+    (==) = \lhs -> \rhs -> case (lhs, rhs) of
+            (REmpty, REmpty) -> True
+            ((xs :< x), (ys :< y)) -> x == y && xs == ys
+            otherwise -> False
+    (/=) = \lhs -> \rhs -> not (lhs == rhs)
 instance Semigroup (ReverseList a) where
 instance Monoid (ReverseList a) where
 instance Functor ReverseList where
