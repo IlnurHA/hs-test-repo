@@ -101,7 +101,7 @@ instance Matrix (SparseMatrix Int) where
                                    deleteHelper (x:xs) mx = deleteHelper xs (delete x mx)
 
                      indeciesToDelete :: Int -> Int -> [(Int, Int)]
-                     indeciesToDelete x y = Prelude.foldl (<>) [] [[ (xIndex, yIndex) | yIndex <- [0..yMax], isNecessaryIndex yIndex xIndex ] | xIndex <- [0..xMax]]
+                     indeciesToDelete x y = Prelude.foldl (<>) [] [[ (xIndex, yIndex) | yIndex <- [0..yMax - 1], isNecessaryIndex yIndex xIndex ] | xIndex <- [0..xMax - 1]]
                             where
                                    isNecessaryIndex xIndex yIndex = xIndex == x || yIndex == y
                      
@@ -122,7 +122,7 @@ instance Matrix (SparseMatrix Int) where
        -- mxrow :: mx -> Int -> Maybe [a]
        mxrow mx x 
               | x >= xMax || x < 0 = Nothing
-              | otherwise = Just $ [findWithDefault 0 (x, yIndex) elems | yIndex <- [0..yMax]]
+              | otherwise = Just $ [findWithDefault 0 (x, yIndex) elems | yIndex <- [0..yMax - 1]]
               where
                      xMax = sparseMatrixHeight mx
                      yMax = sparseMatrixWidth mx
@@ -131,7 +131,7 @@ instance Matrix (SparseMatrix Int) where
        -- mxcolumn :: mx -> Int -> Maybe [a]
        mxcolumn mx y 
               | y >= yMax || y < 0 = Nothing
-              | otherwise = Just $ [findWithDefault 0 (xIndex, y) elems | xIndex <- [0..xMax]]
+              | otherwise = Just $ [findWithDefault 0 (xIndex, y) elems | xIndex <- [0..xMax - 1]]
               where
                      xMax = sparseMatrixHeight mx
                      yMax = sparseMatrixWidth mx
@@ -173,7 +173,7 @@ multiplyMatrix mx1 mx2 =
                                    otherwise -> Nothing
               multiply mx1 mx2 newMX newX newY = applyOperations newMX $ operations mx1 mx2 newX newY
               
-              operations mx1 mx2 newX newY = Prelude.foldl (<>) [] [[((x, y), result mx1 mx2 x y) | y <- [0..newY]] | x <- [0..newX]]
+              operations mx1 mx2 newX newY = Prelude.foldl (<>) [] [[((x, y), result mx1 mx2 x y) | y <- [0..newY - 1]] | x <- [0..newX - 1]]
                      where
                             result mx1 mx2 x y = rowSum mx1 x * columnSum mx2 y 
                             rowSum mx x = sum $ fromMaybe [0] $ mxrow mx x
@@ -182,5 +182,14 @@ multiplyMatrix mx1 mx2 =
               applyOperations mx [] = mx
               applyOperations mx (((x, y), value):xs) = applyOperations (mxinsert mx x y value) xs 
 -- Определитель матрицы
-determinant :: Matrix m => m -> Int
-determinant = notImplementedYet
+determinant :: (Show m, Matrix m) => m -> Int
+determinant mx
+       | not $ isSquare mx = error ("Determinant available only for square matrices: " ++ (show mx))
+       | mxsize mx == (1, 1) = fromJust $ mxget mx 0 0
+       | otherwise = sum $ [((-1) ^ (yIndex `mod` 2)) * (var yIndex) * (determinant $ submatrix yIndex) | yIndex <- [0..yMax - 1]]
+       where
+              var y = fromJust $ mxget mx 0 y
+              submatrix y = fromJust $ mxsubmx mx 0 y
+              (xMax, yMax) = mxsize mx
+              isSquare mx = x == y
+                     where (x, y) = mxsize mx
