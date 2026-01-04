@@ -51,7 +51,10 @@ myCosHelper i n x res = if i > n then res
 myGCD :: Integer -> Integer -> Integer
 myGCD a 0 = abs a
 myGCD 0 b = abs b
-myGCD a b = myGCDHelper (max a b) (min a b)
+myGCD a b = myGCDHelper (max a' b') (min a' b')
+    where
+        a' = abs a
+        b' = abs b
 
 myGCDHelper :: Integer -> Integer -> Integer
 myGCDHelper gr ls = if gr `mod` ls == 0 then ls else myGCDHelper ls (gr `mod` ls)
