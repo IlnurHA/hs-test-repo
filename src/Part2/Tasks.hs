@@ -44,7 +44,6 @@ replaceVar varName replacement (BinaryTerm { op=op, lhv=lhv, rhv=rhv}) = BinaryT
 -- Посчитать значение выражения `Term`
 -- если оно состоит только из констант
 evaluate :: Term -> Term
-evaluate expr@(IntConstant _) = expr
 evaluate (BinaryTerm {op=op, lhv=lhv, rhv=rhv}) = result 
    where
       leftValue = evaluate lhv
@@ -54,3 +53,4 @@ evaluate (BinaryTerm {op=op, lhv=lhv, rhv=rhv}) = result
          Plus -> leftValue |+| rightValue
          Minus -> leftValue |-| rightValue
          Times -> leftValue |*| rightValue
+evaluate expr = expr

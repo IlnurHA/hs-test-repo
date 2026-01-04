@@ -5,6 +5,7 @@ import qualified Data.Map
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 import Part6.Tasks
+import Data.Maybe
 
 unit_eye = do
     eye 1 @?= one
@@ -21,4 +22,72 @@ unit_zero = do
     zero 2 2 @?= [[zz, zz], [zz, zz]]
     zero 5 5 @?= SparseMatrix 5 5 (Data.Map.fromList ([]::[((Int, Int), Int)]))
     where zz :: Int; zz = 0
+
+
+unit_determinant = do
+    determinant (5 :: Int) @?= 5
+    determinant (0 :: Int) @?= 0
+    determinant ((-3) :: Int) @?= -3
+
+    determinant ([[7]] :: [[Int]]) @?= 7
+
+    determinant ([[1, 2], [3, 4]] :: [[Int]]) @?= -2
+    determinant ([[5, 6], [7, 8]] :: [[Int]]) @?= -2
+
+    determinant ([[2, 5, 3], [1, -2, -1], [1, 3, 4]] :: [[Int]]) @?= -20
+
+    determinant (eye 1 :: [[Int]]) @?= 1
+    determinant (eye 2 :: [[Int]]) @?= 1
+    determinant (eye 3 :: [[Int]]) @?= 1
+
+    determinant (zero 2 2 :: [[Int]]) @?= 0
+    determinant (zero 3 3 :: [[Int]]) @?= 0
+
+    let sparse2x2 = fromList2D [[1, 2], [3, 4]] :: SparseMatrix Int
+    determinant sparse2x2 @?= -2
+
+    let sparse3x3 = fromList2D [[2, 5, 3], [1, -2, -1], [1, 3, 4]] :: SparseMatrix Int
+    determinant sparse3x3 @?= -20
+
+    determinant (eye 2 :: SparseMatrix Int) @?= 1
+
+    determinant (zero 3 3 :: SparseMatrix Int) @?= 0
+
+    let diagSparse = fromList2D [[2, 0, 0], [0, 3, 0], [0, 0, 4]] :: SparseMatrix Int
+    determinant diagSparse @?= 24
+
+unit_multiplyMatrix = do
+    multiplyMatrix (2 :: Int) (3 :: Int) @?= 6
+
+    let a = [[1, 2], [3, 4]] :: [[Int]]
+    let b = [[5, 6], [7, 8]] :: [[Int]]
+    multiplyMatrix a b @?= [[19, 22], [43, 50]]
+
+    let c = [[1, 2, 3], [4, 5, 6]] :: [[Int]]
+    let d = [[7, 8], [9, 10], [11, 12]] :: [[Int]]
+    multiplyMatrix c d @?= [[58, 64], [139, 154]]
+
+    multiplyMatrix a (eye 2 :: [[Int]]) @?= a
+    multiplyMatrix (eye 2 :: [[Int]]) a @?= a
+
+    multiplyMatrix a (zero 2 2 :: [[Int]]) @?= zero 2 2
+    multiplyMatrix (zero 2 2 :: [[Int]]) a @?= zero 2 2
+
+    let sparseA = fromList2D a :: SparseMatrix Int
+    let sparseB = fromList2D b :: SparseMatrix Int
+    let result = multiplyMatrix sparseA sparseB
+    
+    fromJust (mxget result 0 0) @?= 19
+    fromJust (mxget result 0 1) @?= 22
+    fromJust (mxget result 1 0) @?= 43
+    fromJust (mxget result 1 1) @?= 50
+
+    multiplyMatrix sparseA (eye 2 :: SparseMatrix Int) @?= sparseA
+
+    let sparseMat = fromList2D [[1, 0, 2], [0, 3, 0], [4, 0, 5]] :: SparseMatrix Int
+    let sparseMat2 = fromList2D [[1, 0, 0], [0, 2, 0], [0, 0, 3]] :: SparseMatrix Int
+    let sparseResult = multiplyMatrix sparseMat sparseMat2
+    fromJust (mxget sparseResult 0 0) @?= 1
+    fromJust (mxget sparseResult 1 1) @?= 6
+    fromJust (mxget sparseResult 2 2) @?= 15
 

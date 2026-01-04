@@ -29,6 +29,9 @@ class Matrix mx where
        mxinsert :: mx -> Int -> Int -> Int -> mx
        mxget :: mx -> Int -> Int -> Maybe Int
 
+       -- Utility function for Dima's tests
+       fromList2D :: [[Int]] -> mx
+
 -- Определите экземпляры данного класса для:
 --  * числа (считается матрицей 1x1)
 --  * списка списков чисел
@@ -51,6 +54,9 @@ instance Matrix Int where
 
        mxget mx 0 0 = Just mx
        mxget _ _ _ = Nothing
+
+       fromList2D [[n]] = n
+       fromList2D _ = error "Wrong dimensions"
 
 
 elementAt :: Int -> [a] -> Maybe a
@@ -77,6 +83,8 @@ instance Matrix [[Int]] where
        
        mxget mx x y = elementAt x mx >>= elementAt y
 
+       fromList2D arr = arr
+
 instance Matrix (SparseMatrix Int) where
        mxzero x y = SparseMatrix { sparseMatrixWidth=y, sparseMatrixHeight=x, sparseMatrixElements=Data.Map.empty }
 
@@ -90,6 +98,8 @@ instance Matrix (SparseMatrix Int) where
                      yMax = sparseMatrixWidth mx
 
                      newElems :: Map (Int, Int) Int
+                     -- newElems = error (show $ indeciesToDelete x y)
+                     -- newElems = deleteElems elems x y
                      newElems = moveKeys (deleteElems elems x y) x y
 
                      deleteElems :: Map (Int, Int) Int -> Int -> Int -> Map (Int, Int) Int
@@ -101,7 +111,7 @@ instance Matrix (SparseMatrix Int) where
                                    deleteHelper (x:xs) mx = deleteHelper xs (delete x mx)
 
                      indeciesToDelete :: Int -> Int -> [(Int, Int)]
-                     indeciesToDelete x y = Prelude.foldl (<>) [] [[ (xIndex, yIndex) | yIndex <- [0..yMax - 1], isNecessaryIndex yIndex xIndex ] | xIndex <- [0..xMax - 1]]
+                     indeciesToDelete x y = Prelude.foldl (<>) [] [[ (xIndex, yIndex) | yIndex <- [0..yMax - 1], isNecessaryIndex xIndex yIndex ] | xIndex <- [0..xMax - 1]]
                             where
                                    isNecessaryIndex xIndex yIndex = xIndex == x || yIndex == y
                      
@@ -147,7 +157,26 @@ instance Matrix (SparseMatrix Int) where
                      elems = sparseMatrixElements mx
        
        -- mxget :: mx -> Int -> Int -> Maybe a
-       mxget mx x y = (sparseMatrixElements mx) !? (x, y)
+       mxget mx x y
+              | x >= xMax || x < 0 || y >= yMax || y < 0 = Nothing
+              | otherwise = Just $ fromMaybe 0 $ elems !? (x, y)
+              where
+                     xMax = sparseMatrixHeight mx
+                     yMax = sparseMatrixWidth mx
+                     elems = sparseMatrixElements mx
+
+       fromList2D arr = SparseMatrix { sparseMatrixWidth=columnLength, sparseMatrixHeight=rowLength, sparseMatrixElements=newElems }
+              where
+                     newElems = insertHelper Data.Map.empty convertedValues
+                     rowLength = length arr
+                     columnLength = case elementAt 0 arr of
+                                   Nothing -> 0
+                                   Just x -> length x
+
+                     convertedValues = Prelude.foldl (<>) [] [ [ ((xIndex, yIndex), elem) | (elem, yIndex) <- zip row [0..]] | (row, xIndex) <- zip arr [0..]]
+                     
+                     insertHelper mx [] = mx
+                     insertHelper mx ((x, value):xs) = insertHelper (insert x value mx) xs
 
 -- Реализуйте следующие функции
 -- Единичная матрица
@@ -175,9 +204,9 @@ multiplyMatrix mx1 mx2 =
               
               operations mx1 mx2 newX newY = Prelude.foldl (<>) [] [[((x, y), result mx1 mx2 x y) | y <- [0..newY - 1]] | x <- [0..newX - 1]]
                      where
-                            result mx1 mx2 x y = rowSum mx1 x * columnSum mx2 y 
-                            rowSum mx x = sum $ fromMaybe [0] $ mxrow mx x
-                            columnSum mx y = sum $ fromMaybe [0] $ mxcolumn mx y
+                            result mx1 mx2 x y = sum $ zipWith (\r -> \c -> r * c) (row mx1 x) (column mx2 y) 
+                            row mx x = fromJust $ mxrow mx x
+                            column mx y = fromJust $ mxcolumn mx y
 
               applyOperations mx [] = mx
               applyOperations mx (((x, y), value):xs) = applyOperations (mxinsert mx x y value) xs 
