@@ -3,6 +3,7 @@ module Part6.Tasks where
 
 import Util (notImplementedYet)
 import Data.Map
+import Data.Maybe
 
 -- Разреженное представление матрицы. Все элементы, которых нет в sparseMatrixElements, считаются нулями
 data SparseMatrix a = SparseMatrix {
@@ -162,7 +163,24 @@ zero :: Matrix m => Int -> Int -> m
 zero w h = mxzero h w
 -- Перемножение матриц
 multiplyMatrix :: Matrix m => m -> m -> m
-multiplyMatrix = notImplementedYet
+multiplyMatrix mx1 mx2 =
+       case resultingSize of 
+              Nothing -> error "Not compatible matrices"
+              Just (newX, newY) -> multiply mx1 mx2 (mxzero newX newY) newX newY
+       where
+              resultingSize = case (mxsize mx1, mxsize mx2) of
+                                   ((x1, y1), (x2, y2)) | y1 == x2 -> Just (x1, y2)
+                                   otherwise -> Nothing
+              multiply mx1 mx2 newMX newX newY = applyOperations newMX $ operations mx1 mx2 newX newY
+              
+              operations mx1 mx2 newX newY = Prelude.foldl (<>) [] [[((x, y), result mx1 mx2 x y) | y <- [0..newY]] | x <- [0..newX]]
+                     where
+                            result mx1 mx2 x y = rowSum mx1 x * columnSum mx2 y 
+                            rowSum mx x = sum $ fromMaybe [0] $ mxrow mx x
+                            columnSum mx y = sum $ fromMaybe [0] $ mxcolumn mx y
+
+              applyOperations mx [] = mx
+              applyOperations mx (((x, y), value):xs) = applyOperations (mxinsert mx x y value) xs 
 -- Определитель матрицы
 determinant :: Matrix m => m -> Int
 determinant = notImplementedYet
