@@ -8,41 +8,62 @@ factorial x = factorialHelper x 1
 factorialHelper :: Int -> Int -> Int
 factorialHelper x res = if x <= 1 then res else factorialHelper (x - 1) (res * x)
 
+argumentNormilizingSin :: Double -> Double
+argumentNormilizingSin x
+    | x < (-pi) = argumentNormilizingSin (x + 2 * pi)
+    | x > pi = argumentNormilizingSin (x - 2 * pi)
+    | x <= pi && x > pi / 2 = argumentNormilizingSin (pi - x)
+    | otherwise = x
+
+
+argumentNormilizingCos :: Double -> Double
+argumentNormilizingCos x
+    | x < (-pi) = argumentNormilizingCos (x + 2 * pi)
+    | x > pi = argumentNormilizingCos (x - 2 * pi)
+    | otherwise = abs x
+
 -- синус числа (формула Тейлора)
 mySin :: Double -> Double
-mySin x = (mySinHelper 2 7 x x)
+mySin x = (mySinHelper 2 15 x' x')
+    where
+        x' = argumentNormilizingSin x
 
 mySinHelper :: Int -> Int -> Double -> Double -> Double 
 mySinHelper i n x res = if i > n then res
     else (mySinHelper (i + 1) n x (res + nextSummand) )
 
     where
-        sign = (-1.0) ** fromIntegral(i + 1)
+        sign = case (i + 1) `mod` 2 of
+                0 -> 1.0
+                1 -> (-1.0)
         power = (2 * i - 1)
         fact = factorial power
         
         nominator :: Double
-        nominator = sign * ( x ** (fromIntegral power) )
+        nominator = sign * ( x ^ (fromIntegral power) )
         
         nextSummand :: Double
         nextSummand = nominator / (fromIntegral fact)
-        
 
 -- косинус числа (формула Тейлора)
 myCos :: Double -> Double
-myCos x = myCosHelper 1 7 x 1
+myCos x = myCosHelper 1 15 x' 1
+    where
+        x' = argumentNormilizingCos x
 
 myCosHelper :: Int -> Int -> Double -> Double -> Double 
 myCosHelper i n x res = if i > n then res
     else (myCosHelper (i + 1) n x (res + nextSummand) )
 
     where
-        sign = (-1.0) ** fromIntegral(i)
+        sign = case i `mod` 2 of
+                0 -> 1.0
+                1 -> (-1.0)
         power = (2 * i)
         fact = fromIntegral $ factorial power
         
         nominator :: Double
-        nominator = sign * ( x ** (fromIntegral power) )
+        nominator = sign * ( x ^ (fromIntegral power) )
         
         nextSummand :: Double
         nextSummand = nominator / fact
